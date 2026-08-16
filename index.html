@@ -139,7 +139,7 @@ function tick(){
 function renderQuestion(){
  const q=state.questions[state.index], answered=Object.keys(state.answers).length;
  document.getElementById("app").innerHTML=`<div class="topbar"><div class="topbarin"><div><strong>${esc(COURSE_INFO[state.course].short)}</strong><div class="small">${answered}/50 answered</div></div><div id="timer" class="timer">60:00</div></div><div class="progress"><div style="width:${((state.index+1)/50)*100}%"></div></div></div>
- <div class="wrap"><div class="summary"><span>Question ${state.index+1} of 50</span><span>Benchmark 80%</span></div>
+ <div class="wrap"><div class="summary"><span>Question ${state.index+1} of 50</span><span></span></div>
  <section class="question"><div class="qnum">QUESTION ${String(state.index+1).padStart(2,"0")}</div><div class="qtext">${esc(q.question)}</div>
  <div class="options">${q.options.map((o,i)=>`<div class="opt ${state.answers[state.index]===i?"selected":""}" data-i="${i}"><span class="letter">${"ABCD"[i]}</span><span>${esc(o)}</span></div>`).join("")}</div></section>
  <div class="nav"><button class="ghost" id="prev" ${state.index===0?"disabled":""}>Previous</button><button id="next">${state.index===49?"Finish assessment":"Next question"}</button></div>
@@ -436,9 +436,9 @@ async function loadAdminRows(user){
         Questions:r.question_count,
         Started:r.started_at,
         Completed:r.completed_at,
-        DurationSeconds:r.duration_seconds,
-        AutoSubmitted:r.auto_submitted,
-        QuestionIDs:Array.isArray(r.question_ids)?r.question_ids.join(" | "):JSON.stringify(r.question_ids||[]),
+        Duration_Seconds:r.duration_seconds,
+        Auto_Submitted:r.auto_submitted,
+        Question_IDs:Array.isArray(r.question_ids)?r.question_ids.join(" | "):JSON.stringify(r.question_ids||[]),
         Answers:JSON.stringify(r.answers||{})
       }));
 
