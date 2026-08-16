@@ -123,12 +123,12 @@ function renderResult(correct, pct, auto) {
   const seconds = totalSeconds % 60;
   const timeString = `${minutes}m ${seconds}s`;
 
-  document.getElementById("app").innerHTML = `<div class="wrap"><div class="brand"><div class="mark">A</div>AWS Connect Developer Assessment</div><div class="card result">
+  document.getElementById("app").innerHTML = `<div class="wrap"><div class="brand"><div class="mark">A</div></div><div class="card result">
   <div class="eyebrow">Assessment summary</div><h1>${esc(COURSE_INFO[state.course].title)}</h1>
   <div class="score">${pct}%</div><h2>${tone}</h2>
   <p class="hint">You answered ${correct} of 50 questions correctly. The benchmark for this assessment is 80%. ${auto ? "The timer reached zero, so the assessment was submitted automatically." : ""}</p>
   <div class="meta" style="justify-content:center"><span class="pill">${correct}/50 correct</span><span class="pill">50 questions</span><span class="pill">Completed in ${timeString}</span><span class="pill">60 minutes max</span></div>
-  <div style="margin-top:20px"><a href="?course=${state.course}"><button>Take another randomized attempt</button></a></div>
+  <div style="margin-top:20px"><a href="?course=${state.course}"></a></div>
   </div></div>`;
 }
 async function renderAdmin(){
