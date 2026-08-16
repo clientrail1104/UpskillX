@@ -200,7 +200,7 @@ async function loadAdminRows(){
    document.getElementById("exportAll").onclick=()=>exportRowsToExcel(rows,"AWS_Assessment_All_Responses.xlsx","All Responses");
    document.querySelectorAll("[data-export]").forEach(btn=>btn.onclick=()=>{
      const key=btn.dataset.export; const cr=rows.filter(r=>r.course===key);
-     exportRowsToExcel(cr,`${safeFileName(COURSE_INFO[key]?.title||key)}_Responses.xlsx","Responses");
+     exportRowsToExcel(cr,`${safeFileName(COURSE_INFO[key]?.title||key)}_Responses.xlsx`,"Responses");
    });
    document.querySelectorAll("[data-view]").forEach(btn=>btn.onclick=()=>showCourseResponses(rows,btn.dataset.view));
  }catch(e){
@@ -213,7 +213,7 @@ function showCourseResponses(rows,key){
  const cr=rows.filter(r=>r.course===key);
  target.innerHTML=`<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><div class="eyebrow">Responses</div><h2>${esc(COURSE_INFO[key]?.title||key)}</h2><div class="small">${cr.length} response${cr.length===1?"":"s"}</div></div><button id="inlineExport">Download Excel</button></div>
  <div class="scroll"><table><thead><tr><th>Name</th><th>Score</th><th>Percent</th><th>Completed</th><th>Duration</th><th>Auto</th></tr></thead><tbody>${cr.length?cr.map(r=>`<tr><td>${esc(r.full_name)}</td><td>${r.score}/${r.question_count||50}</td><td>${r.percentage}%</td><td>${esc(r.completed_at||"")}</td><td>${Math.round((r.duration_seconds||0)/60)} min</td><td>${r.auto_submitted?"Yes":"No"}</td></tr>`).join(""):`<tr><td colspan="6" class="small">No responses yet.</td></tr>`}</tbody></table></div>`;
- document.getElementById("inlineExport").onclick=()=>exportRowsToExcel(cr,`${safeFileName(COURSE_INFO[key]?.title||key)}_Responses.xlsx","Responses");
+ document.getElementById("inlineExport").onclick=()=>exportRowsToExcel(cr,`${safeFileName(COURSE_INFO[key]?.title||key)}_Responses.xlsx`,"Responses");
 }
 
 function safeFileName(s){return String(s).replace(/[^a-z0-9]+/gi,"_").replace(/^_+|_+$/g,"")}
