@@ -57,7 +57,7 @@ function renderHome(){
  <section class="hero"><div class="eyebrow">Developer certification-style practice</div>
  <h1>Measure what you can build with Amazon Connect.</h1>
  <p>Each assessment contains a 300-question bank. Every attempt receives a different randomized set of 50 questions, with randomized answer order.</p></section>
- <div class="grid">${Object.entries(COURSE_INFO).map(([k,c])=>`<article class="card"><div class="eyebrow">${k==="fundamentals"?"COURSE 01":"COURSE 02"}</div><h2>${c.title}</h2><p>${c.subtitle}</p><div class="meta"><span class="pill">300 question bank</span><span class="pill">50 selected</span><span class="pill">60 minutes</span><span class="pill">80% benchmark</span></div><a href="?course=${k}"><button>Begin assessment</button></a></article>`).join("")}</div>
+ <div class="grid">${Object.entries(COURSE_INFO).map(([k,c])=>`<article class="card"><div class="eyebrow">${k==="fundamentals"?"COURSE 01":"COURSE 02"}</div><h2>${c.title}</h2><p>${c.subtitle}</p><div class="meta"><span class="pill">50 Questions</span><span class="pill">60 minutes</span><span class="pill">Passing Score 80%</span></div><a href="?course=${k}"><button>Begin assessment</button></a></article>`).join("")}</div>
  <p class="small" style="margin-top:24px">Content is independently authored from AWS documentation and training material; it is not an AWS certification exam.</p>
  </div>`;
 }
