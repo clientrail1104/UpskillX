@@ -1,0 +1,18 @@
+{
+  "courses": {
+    "fundamentals": {
+      "questions": 300,
+      "selection": 50,
+      "time_minutes": 60,
+      "benchmark_percent": 80
+    },
+    "ai": {
+      "questions": 300,
+      "selection": 50,
+      "time_minutes": 60,
+      "benchmark_percent": 80
+    }
+  },
+  "generated": "2026-08-16",
+  "source_basis": "AWS official documentation and AWS training pages; independently authored questions."
+}
