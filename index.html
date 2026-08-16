@@ -1,0 +1,82 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AWS Cloud & Amazon Connect Developer Assessment</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="config.js"></script>
+<style>
+#timer{font-variant-numeric:tabular-nums;color:#b45309}.passed{color:#15803d;font-weight:900}.failed{color:#b91c1c;font-weight:900}
+:root{--bg:#f7f8fa;--card:#fff;--text:#172033;--muted:#667085;--line:#e5e7eb;--accent:#ff9900;--dark:#111827}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,sans-serif;color:var(--text)}
+header{background:var(--dark);color:#fff;padding:24px}header h1{margin:0;font-size:25px}header p{margin:7px 0 0;color:#cbd5e1}
+main{max-width:1100px;margin:28px auto;padding:0 18px}.notice{background:#fff7e6;border:1px solid #ffd591;padding:14px 16px;border-radius:12px;margin-bottom:20px}
+.grid{display:grid;gap:10px}.course{display:flex;align-items:center;gap:14px;width:100%;padding:16px;border:1px solid var(--line);background:var(--card);border-radius:14px;text-align:left;cursor:pointer}
+.course:hover{border-color:var(--accent);box-shadow:0 3px 14px #0000000b}.course span{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#fff3df;color:#9a5b00;font-weight:800}
+.course div{flex:1}.course small{display:block;color:var(--muted);margin-top:3px}.course em{font-style:normal;color:#9a5b00;font-weight:700}
+.hidden{display:none!important}.quizcard,.resultcard,.admincard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 8px 28px #00000008}
+.top{display:flex;justify-content:space-between;gap:10px;margin-bottom:20px;color:var(--muted)}#question{font-size:21px;line-height:1.45;margin:10px 0 20px}
+.option{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);padding:15px;border-radius:12px;margin:10px 0;cursor:pointer}.option:hover{border-color:#ffb84d;background:#fffaf2}
+.option input{margin-top:4px}.option span{font-weight:800}.nav{display:flex;justify-content:space-between;margin-top:20px}
+.action{border:0;border-radius:10px;padding:12px 18px;font-weight:800;cursor:pointer}#next{background:var(--dark);color:#fff}#prev{background:#eef1f5}
+.resultcard{text-align:center}#score{font-size:42px;font-weight:900;margin:15px}.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#loading{position:fixed;inset:0;background:#111827dd;color:#fff;display:grid;place-items:center;font-size:20px;z-index:5}
+.admin-link{margin-top:30px;text-align:right}.admin-link button{background:none;border:0;color:#667085;cursor:pointer}
+.candidate-card{max-width:620px;margin:0 auto}.candidate-card label{display:block;margin:15px 0 6px;font-weight:700}.candidate-card input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:10px;font-size:16px}.candidate-card input:focus{outline:2px solid #ffb84d;border-color:#ff9900}.candidate-card .actions{margin-top:20px;justify-content:flex-start}.secondary{background:#eef1f5}.error{color:#b91c1c;font-weight:700;min-height:20px}
+
+
+.result-shell{background:#fff;border:1px solid var(--line);border-radius:26px;overflow:hidden;box-shadow:0 18px 60px #11182712;max-width:850px;margin:35px auto}
+.result-top{padding:28px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:20px}
+.eyebrow{font-size:12px;letter-spacing:.14em;font-weight:900;color:#9a5b00;margin-bottom:8px}
+.result-top h2{margin:0;font-size:30px}.result-top p{margin:7px 0 0;color:var(--muted)}
+.result-badge{padding:10px 18px;border-radius:999px;font-weight:950;font-size:14px;background:#f2f4f7;color:#475467;white-space:nowrap}
+.result-badge.pass{background:#dcfce7;color:#166534}.result-badge.fail{background:#fee2e2;color:#991b1b}
+.result-main{padding:42px 32px;display:flex;align-items:center;justify-content:center;gap:55px}
+.score-ring{width:190px;height:190px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#111827 0deg,#111827 var(--score-angle,0deg),#edf0f3 var(--score-angle,0deg),#edf0f3 360deg);position:relative;flex:0 0 auto}
+.score-ring:after{content:"";position:absolute;inset:13px;background:#fff;border-radius:50%}
+.score-ring>div{position:relative;z-index:1;text-align:center}.score-ring strong{display:block;font-size:43px;line-height:1}.score-ring span{display:block;color:var(--muted);font-size:13px;margin-top:7px}
+.result-copy{max-width:430px}.result-copy h3{font-size:24px;margin:0 0 8px}.result-copy p{color:var(--muted);line-height:1.6;margin:0 0 20px}
+.result-stats{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:14px;overflow:hidden}.result-stats div{padding:14px;border-right:1px solid var(--line)}.result-stats div:last-child{border-right:0}.result-stats span{display:block;color:var(--muted);font-size:12px}.result-stats b{display:block;font-size:18px;margin-top:3px}
+.result-footer{padding:18px 32px;background:#f8fafc;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:15px}.result-footer span{color:var(--muted);font-size:13px}
+@media(max-width:700px){.result-main{flex-direction:column;gap:28px;text-align:center}.result-top{align-items:flex-start}.result-footer{flex-direction:column}.result-stats{width:100%}}
+</style></head><body>
+<div id="loading" class="hidden">Preparing randomized assessment…</div>
+<header><h1>AWS Cloud & Amazon Connect Developer Assessment</h1><p>29 assessments • 300 questions per course • 50 randomized questions • Beginner + Intermediate</p></header>
+<main>
+<section id="home"><div class="notice"><b>Developer assessment:</b> Every attempt receives exactly 25 Beginner + 25 Intermediate questions. Question and answer order are randomized. Correct answers stay server-side and Supabase calculates the score.</div>
+<h2>Select a course</h2><div id="courses" class="grid"></div><div class="admin-link"><button id="adminLogin">Administrator login</button></div></section>
+<section id="candidate" class="hidden"><div class="admincard candidate-card">
+<h2>Candidate Information</h2><p>Please enter your full name before starting the assessment.</p>
+<label for="fullName">Full Name</label><input id="fullName" type="text" autocomplete="name" placeholder="Enter your full name" maxlength="120">
+<label for="candidateEmail">Email Address <span>(optional)</span></label><input id="candidateEmail" type="email" autocomplete="email" placeholder="Enter your email address">
+<div class="actions"><button id="beginAssessment" class="action">Start Assessment</button><button id="cancelCandidate" class="action secondary">Cancel</button></div>
+<p id="candidateError" class="error"></p></div></section>
+<section id="quiz" class="hidden"><div class="quizcard"><div class="top"><span id="courseTitle"></span><span><b id="difficulty"></b> · <b id="progress"></b> · <b id="timer">60:00</b></span></div><div id="question"></div><div id="options"></div><div class="nav"><button id="prev" class="action">← Previous</button><button id="next" class="action">Next →</button></div></div></section>
+<section id="result" class="hidden">
+  <div class="result-shell">
+    <div class="result-top">
+      <div>
+        <div class="eyebrow">ASSESSMENT RESULT</div>
+        <h2 id="resultTitle">Assessment complete</h2>
+        <p id="resultCourse"></p>
+      </div>
+      <div class="result-badge" id="resultBadge">—</div>
+    </div>
+    <div class="result-main">
+      <div class="score-ring" id="scoreRing"><div><strong id="scoreNumber">0%</strong><span>Score</span></div></div>
+      <div class="result-copy">
+        <h3 id="resultHeadline">Your result</h3>
+        <p id="resultMessage"></p>
+        <div class="result-stats">
+          <div><span>Correct</span><b id="correctCount">0</b></div>
+          <div><span>Questions</span><b id="totalCount">50</b></div>
+          <div><span>Passing mark</span><b>80%</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="result-footer">
+      <span id="candidateSummary"></span>
+      <button id="homeBtn" class="action">Return to Assessments</button>
+    </div>
+  </div>
+</section>
+<section id="adminPanel" class="hidden"><div class="admincard"><h2>Administrator</h2><p>Download every submitted response, selected answer, correct answer and score.</p><button id="exportAll" class="action">Download All Responses + Scores (Excel)</button></div></section>
+</main><script>const COURSES=["AWS Cloud Practitioner Essentials", "IAM Fundamentals", "AWS Lambda Fundamentals", "API Gateway Fundamentals", "Amazon Connect Primer", "Amazon Connect Console Fundamentals", "Amazon Connect Instance Fundamentals", "Amazon Connect Agent Applications Fundamentals", "Contact Control Panel Fundamentals", "Amazon Connect Routing Fundamentals", "Amazon Connect Flows Fundamentals", "Amazon Connect Voice Intermediate", "Amazon Connect Routing Intermediate", "Amazon Connect Flows Intermediate", "Chat and Messaging Fundamentals", "Chat and Messaging Intermediate", "Conversational Interfaces Fundamentals", "Conversational Interfaces Intermediate", "Customer Profiles Fundamentals", "Implementing Customer Profiles", "Contact Lens Fundamentals", "Optimizing Routing Solutions", "Amazon Connect Development Fundamentals", "Amazon Connect APIs Intermediate", "Flows Lambda Integrations Fundamentals", "Flow Modules and Step-by-Step Guides", "Custom Contact Control Panel Fundamentals", "Infrastructure as Code Fundamentals", "Deep Dive into Report and Metrics"];</script><script src="app.js"></script></body></html>
