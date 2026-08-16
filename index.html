@@ -14,7 +14,7 @@
 <body><div id="app"></div>
 <script>
 const SUPABASE_URL = "https://ntmmzjkxojfxltxwyspy.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY";
+const SUPABASE_ANON_KEY = "sb_publishable_wMwwsFep5ZjbqNi5UbWi5w_g9-GEASa";
 const sb = (window.supabase && SUPABASE_ANON_KEY !== "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY") ? window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY) : null;
 const state={assessment:null,questions:[],answers:[],index:0,name:'',startedAt:null,timer:null,submitted:false,adminUser:null};
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
