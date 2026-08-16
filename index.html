@@ -54,11 +54,11 @@ function route(){
 function renderHome(){
  document.getElementById("app").innerHTML=`<div class="wrap">
  <div class="brand"><div class="mark">A</div>AWS Connect Developer Assessment</div>
- <section class="hero"><div class="eyebrow">Developer certification-style practice</div>
- <h1>Measure what you can build with Amazon Connect.</h1>
- <p>Each assessment contains a 300-question bank. Every attempt receives a different randomized set of 50 questions, with randomized answer order.</p></section>
+ <section class="hero"><div class="eyebrow">Modernizing Applications with AWS Developer Tools</div>
+ <h1>Measure what you can build with AWS.</h1>
+ </section>
  <div class="grid">${Object.entries(COURSE_INFO).map(([k,c])=>`<article class="card"><div class="eyebrow">${k==="fundamentals"?"COURSE 01":"COURSE 02"}</div><h2>${c.title}</h2><p>${c.subtitle}</p><div class="meta"><span class="pill">50 Questions</span><span class="pill">60 minutes</span><span class="pill">Passing Score 80%</span></div><a href="?course=${k}"><button>Begin assessment</button></a></article>`).join("")}</div>
- <p class="small" style="margin-top:24px">Content is independently authored from AWS documentation and training material; it is not an AWS certification exam.</p>
+ <p class="small" style="margin-top:24px">Content is independently authored from AWS documentation and training material, it is not an AWS certification exam.</p>
  </div>`;
 }
 function renderStart(course){
