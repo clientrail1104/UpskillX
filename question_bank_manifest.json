@@ -1,13 +1,13 @@
 {
   "courses": {
     "fundamentals": {
-      "questions": 300,
+      
       "selection": 50,
       "time_minutes": 60,
       "benchmark_percent": 80
     },
     "ai": {
-      "questions": 300,
+      
       "selection": 50,
       "time_minutes": 60,
       "benchmark_percent": 80
