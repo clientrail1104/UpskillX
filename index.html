@@ -1,282 +1,4679 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AWS Assessment Manager</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#090d18">
+<meta name="description" content="NeonOCR - Client-side document intelligence and HD OCR">
+<title>NeonOCR — HD Document Intelligence</title>
+
+<!-- OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<!-- PDF rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs"
+        type="module"></script>
+
 <style>
-:root {
-  --bg: #e0e8f0;
-  --text: #2d3748;
-  --muted: #718096;
-  --brand: #5b5cf0;
-  --brand-light: #7c3aed;
-  --good: #0e9f6e;
-  --danger: #f05252;
-  
-  /* Neumorphic Shadows */
-  --shadow-light: #ffffff;
-  --shadow-dark: #b8c4d8;
-  --neu-flat: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
-  --neu-flat-sm: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
-  --neu-pressed: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+:root{
+    --bg:#080c15;
+    --panel:#0d1320;
+    --panel2:#111827;
+    --text:#edf7ff;
+    --muted:#8492aa;
+    --cyan:#00e5ff;
+    --cyan2:#00a8ff;
+    --green:#00ffa3;
+    --yellow:#ffd166;
+    --red:#ff5577;
+    --purple:#a970ff;
+    --shadow-dark:#03060c;
+    --shadow-light:#172237;
+    --radius:22px;
 }
 
-* {
-  box-sizing: border-box;
-  transition: all 0.2s ease-in-out;
+*{
+    box-sizing:border-box;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: var(--text);
-  background-color: var(--bg);
-  padding: 2rem;
+html,
+body{
+    margin:0;
+    width:100%;
+    min-height:100%;
+    background:
+        radial-gradient(circle at 10% 10%,rgba(0,229,255,.07),transparent 30%),
+        radial-gradient(circle at 90% 15%,rgba(169,112,255,.07),transparent 30%),
+        radial-gradient(circle at 50% 100%,rgba(0,255,163,.04),transparent 35%),
+        var(--bg);
+    color:var(--text);
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
 }
 
-/* Layout Containers */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
+body{
+    overflow-x:hidden;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-radius: 20px;
-  background: var(--bg);
-  box-shadow: var(--neu-flat);
-  margin-bottom: 2rem;
+button,
+input,
+select,
+textarea{
+    font:inherit;
 }
 
-.header h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
+button{
+    cursor:pointer;
 }
 
-/* Neumorphic Components */
-.neu-card {
-  background: var(--bg);
-  box-shadow: var(--neu-flat);
-  border-radius: 20px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+.app{
+    min-height:100vh;
+    padding:18px;
 }
 
-.neu-inset {
-  background: var(--bg);
-  box-shadow: var(--neu-pressed);
-  border-radius: 12px;
-  padding: 0.8rem 1.2rem;
-  border: none;
-  outline: none;
-  color: var(--text);
-  width: 100%;
+.shell{
+    max-width:1800px;
+    margin:auto;
 }
 
-.neu-btn {
-  background: var(--bg);
-  box-shadow: var(--neu-flat-sm);
-  border-radius: 12px;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  font-weight: 600;
-  color: var(--text);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+/* ================= HEADER ================= */
+
+.topbar{
+    min-height:74px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    padding:16px 20px;
+    border-radius:24px;
+    background:linear-gradient(145deg,#101827,#0b111c);
+    box-shadow:
+        12px 12px 25px var(--shadow-dark),
+        -8px -8px 20px var(--shadow-light),
+        inset 0 0 0 1px rgba(255,255,255,.025);
 }
 
-.neu-btn:hover {
-  box-shadow: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
+.brand{
+    display:flex;
+    align-items:center;
+    gap:13px;
 }
 
-.neu-btn:active {
-  box-shadow: var(--neu-pressed);
-  color: var(--brand);
+.logo{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    font-size:20px;
+    color:var(--cyan);
+    background:#0c1421;
+    box-shadow:
+        5px 5px 12px #03060b,
+        -4px -4px 10px #172438,
+        0 0 18px rgba(0,229,255,.12);
 }
 
-.neu-btn-primary {
-  color: var(--brand);
-  font-weight: 700;
+.brand h1{
+    margin:0;
+    font-size:18px;
+    letter-spacing:.8px;
 }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+.brand small{
+    display:block;
+    margin-top:3px;
+    color:var(--muted);
+    font-size:11px;
 }
 
-.stat-card {
-  text-align: center;
+.status{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    color:#aab7cb;
+    font-size:12px;
 }
 
-.stat-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--brand);
-  margin-top: 0.5rem;
+.status-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 12px var(--green);
 }
 
-/* Form Controls & Search */
-.controls-bar {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
+.header-actions{
+    display:flex;
+    gap:9px;
 }
 
-.search-input {
-  flex: 1;
-  min-width: 250px;
+/* ================= BUTTONS ================= */
+
+.neon-btn{
+    border:0;
+    color:#dffaff;
+    background:#0d1726;
+    padding:10px 15px;
+    border-radius:13px;
+    box-shadow:
+        5px 5px 11px #03060c,
+        -4px -4px 9px #172337;
+    transition:.2s ease;
 }
 
-/* File Drop Zone */
-.drop-zone {
-  border: 2px dashed #b8c4d8;
-  border-radius: 16px;
-  padding: 2.5rem;
-  text-align: center;
-  background: var(--bg);
-  box-shadow: var(--neu-pressed);
-  cursor: pointer;
-  margin-bottom: 1.5rem;
+.neon-btn:hover{
+    color:white;
+    transform:translateY(-1px);
+    box-shadow:
+        5px 5px 11px #03060c,
+        -4px -4px 9px #172337,
+        0 0 15px rgba(0,229,255,.15);
 }
 
-.drop-zone:hover {
-  border-color: var(--brand);
+.neon-btn.primary{
+    color:#001015;
+    background:linear-gradient(135deg,#00e5ff,#00ffa3);
+    font-weight:800;
+    box-shadow:
+        0 0 18px rgba(0,229,255,.18),
+        5px 5px 12px #03060c;
 }
 
-/* Table Styling */
-.table-container {
-  overflow-x: auto;
-  border-radius: 16px;
+.neon-btn.danger{
+    color:#ffb4c2;
 }
 
-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 0.8rem;
+/* ================= MAIN GRID ================= */
+
+.main-grid{
+    display:grid;
+    grid-template-columns:330px minmax(0,1fr) 380px;
+    gap:18px;
+    margin-top:18px;
 }
 
-th {
-  padding: 1rem;
-  color: var(--muted);
-  font-weight: 600;
-  text-align: left;
+.card{
+    background:linear-gradient(145deg,#101826,#0b111c);
+    border-radius:var(--radius);
+    box-shadow:
+        12px 12px 25px var(--shadow-dark),
+        -8px -8px 20px var(--shadow-light),
+        inset 0 0 0 1px rgba(255,255,255,.02);
 }
 
-td {
-  padding: 1rem;
-  background: var(--bg);
-  box-shadow: var(--neu-flat-sm);
+.panel{
+    padding:18px;
 }
 
-td:first-child {
-  border-radius: 12px 0 0 12px;
+.panel-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
 }
 
-td:last-child {
-  border-radius: 0 12px 12px 0;
+.panel-title h2{
+    margin:0;
+    font-size:13px;
+    letter-spacing:.7px;
+    text-transform:uppercase;
 }
 
-/* Status Badges */
-.badge {
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  box-shadow: var(--neu-pressed);
-  display: inline-block;
+.panel-title span{
+    color:var(--muted);
+    font-size:10px;
 }
 
-.badge-good { color: var(--good); }
-.badge-danger { color: var(--danger); }
+/* ================= LEFT PANEL ================= */
+
+.upload-zone{
+    min-height:210px;
+    border:1px dashed rgba(0,229,255,.3);
+    border-radius:18px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:22px;
+    text-align:center;
+    background:
+        radial-gradient(circle,rgba(0,229,255,.06),transparent 65%),
+        #0b121e;
+    transition:.25s;
+}
+
+.upload-zone.dragover{
+    border-color:var(--cyan);
+    background:
+        radial-gradient(circle,rgba(0,229,255,.15),transparent 65%),
+        #0c1624;
+    box-shadow:0 0 25px rgba(0,229,255,.15);
+}
+
+.upload-icon{
+    font-size:38px;
+    margin-bottom:12px;
+    filter:drop-shadow(0 0 10px rgba(0,229,255,.45));
+}
+
+.upload-zone strong{
+    font-size:14px;
+}
+
+.upload-zone p{
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.5;
+    margin:7px 0 14px;
+}
+
+.file-input{
+    display:none;
+}
+
+.doc-buttons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-top:12px;
+}
+
+.document-slot{
+    padding:12px;
+    border-radius:15px;
+    background:#0b121e;
+    box-shadow:
+        inset 3px 3px 8px #03060b,
+        inset -3px -3px 8px #152033;
+}
+
+.slot-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:11px;
+    margin-bottom:8px;
+}
+
+.slot-status{
+    font-size:9px;
+    color:var(--muted);
+}
+
+.slot-status.ready{
+    color:var(--green);
+}
+
+.slot-file{
+    font-size:10px;
+    color:#aebbd0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* ================= SETTINGS ================= */
+
+.setting{
+    margin-top:15px;
+}
+
+.setting label{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:#b9c6d9;
+    font-size:11px;
+    margin-bottom:7px;
+}
+
+.setting output{
+    color:var(--cyan);
+}
+
+input[type="range"]{
+    width:100%;
+    accent-color:var(--cyan);
+}
+
+select{
+    width:100%;
+    border:0;
+    outline:0;
+    color:#dcecff;
+    background:#0a111d;
+    padding:10px;
+    border-radius:11px;
+    box-shadow:
+        inset 3px 3px 7px #03060b,
+        inset -3px -3px 7px #152033;
+}
+
+.toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:13px;
+}
+
+.toggle-row span{
+    font-size:11px;
+    color:#b9c6d9;
+}
+
+.switch{
+    position:relative;
+    width:42px;
+    height:22px;
+}
+
+.switch input{
+    opacity:0;
+    width:0;
+    height:0;
+}
+
+.slider{
+    position:absolute;
+    inset:0;
+    background:#080e18;
+    border-radius:20px;
+    box-shadow:inset 2px 2px 5px #03060b;
+    transition:.2s;
+}
+
+.slider:before{
+    content:"";
+    position:absolute;
+    width:16px;
+    height:16px;
+    left:3px;
+    top:3px;
+    border-radius:50%;
+    background:#64748b;
+    transition:.2s;
+}
+
+.switch input:checked + .slider{
+    background:rgba(0,229,255,.15);
+    box-shadow:0 0 10px rgba(0,229,255,.12);
+}
+
+.switch input:checked + .slider:before{
+    transform:translateX(20px);
+    background:var(--cyan);
+    box-shadow:0 0 10px var(--cyan);
+}
+
+/* ================= CENTER ================= */
+
+.center{
+    min-width:0;
+}
+
+.preview-card{
+    min-height:535px;
+    padding:18px;
+}
+
+.preview-stage{
+    min-height:455px;
+    border-radius:18px;
+    background:
+        linear-gradient(45deg,#0b111c 25%,transparent 25%),
+        linear-gradient(-45deg,#0b111c 25%,transparent 25%),
+        linear-gradient(45deg,transparent 75%,#0b111c 75%),
+        linear-gradient(-45deg,transparent 75%,#0b111c 75%),
+        #080d16;
+    background-size:28px 28px;
+    background-position:0 0,0 14px,14px -14px,-14px 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    position:relative;
+}
+
+.preview-empty{
+    text-align:center;
+    color:#627087;
+}
+
+.preview-empty .big{
+    font-size:50px;
+    opacity:.35;
+}
+
+.preview-empty p{
+    font-size:12px;
+}
+
+.preview-image{
+    max-width:100%;
+    max-height:455px;
+    object-fit:contain;
+    display:none;
+    filter:drop-shadow(0 15px 25px rgba(0,0,0,.45));
+}
+
+.scan-overlay{
+    display:none;
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+        linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(0,229,255,.0) 46%,
+            rgba(0,229,255,.28) 50%,
+            rgba(0,229,255,0) 54%,
+            transparent 100%
+        );
+    animation:scan 2.2s linear infinite;
+}
+
+@keyframes scan{
+    from{transform:translateY(-50%);}
+    to{transform:translateY(50%);}
+}
+
+.preview-info{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:12px;
+    color:var(--muted);
+    font-size:10px;
+}
+
+.progress-wrap{
+    height:7px;
+    border-radius:10px;
+    background:#080d16;
+    overflow:hidden;
+    margin-top:10px;
+    box-shadow:inset 2px 2px 5px #03060b;
+}
+
+.progress-bar{
+    height:100%;
+    width:0;
+    background:linear-gradient(90deg,var(--cyan),var(--green));
+    box-shadow:0 0 12px rgba(0,229,255,.5);
+    transition:width .2s;
+}
+
+/* ================= RESULT ================= */
+
+.results{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:12px;
+}
+
+.metric{
+    padding:13px;
+    border-radius:15px;
+    background:#0b121e;
+    box-shadow:
+        inset 3px 3px 8px #03060b,
+        inset -3px -3px 8px #152033;
+}
+
+.metric small{
+    display:block;
+    color:var(--muted);
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+}
+
+.metric strong{
+    display:block;
+    margin-top:4px;
+    font-size:14px;
+}
+
+.metric strong.cyan{
+    color:var(--cyan);
+}
+
+.metric strong.green{
+    color:var(--green);
+}
+
+/* ================= RIGHT PANEL ================= */
+
+.field{
+    margin-bottom:11px;
+}
+
+.field-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:5px;
+}
+
+.field-head label{
+    color:#aebbd0;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+}
+
+.confidence{
+    font-size:9px;
+    padding:3px 6px;
+    border-radius:6px;
+    background:#101b29;
+}
+
+.confidence.high{
+    color:var(--green);
+}
+
+.confidence.medium{
+    color:var(--yellow);
+}
+
+.confidence.low{
+    color:var(--red);
+}
+
+.field input,
+.field textarea{
+    width:100%;
+    border:0;
+    outline:0;
+    color:#edf7ff;
+    background:#0a111c;
+    border-radius:11px;
+    padding:10px;
+    box-shadow:
+        inset 3px 3px 7px #03060b,
+        inset -3px -3px 7px #152033;
+    font-size:11px;
+}
+
+.field textarea{
+    min-height:62px;
+    resize:vertical;
+}
+
+.field.uncertain input,
+.field.uncertain textarea{
+    box-shadow:
+        inset 3px 3px 7px #03060b,
+        inset -3px -3px 7px #152033,
+        0 0 0 1px rgba(255,85,119,.25);
+}
+
+/* ================= RAW OCR ================= */
+
+.ocr-text{
+    max-height:210px;
+    overflow:auto;
+    white-space:pre-wrap;
+    word-break:break-word;
+    font-size:10px;
+    line-height:1.55;
+    color:#b7c5d8;
+    padding:12px;
+    background:#080e18;
+    border-radius:12px;
+    box-shadow:
+        inset 3px 3px 7px #03060b,
+        inset -3px -3px 7px #152033;
+}
+
+/* ================= ALERT ================= */
+
+.alert{
+    display:none;
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:11px;
+    font-size:10px;
+    line-height:1.5;
+}
+
+.alert.show{
+    display:block;
+}
+
+.alert.warning{
+    color:#ffe6a5;
+    background:rgba(255,209,102,.07);
+    border:1px solid rgba(255,209,102,.16);
+}
+
+.alert.error{
+    color:#ffc0cd;
+    background:rgba(255,85,119,.07);
+    border:1px solid rgba(255,85,119,.16);
+}
+
+.alert.success{
+    color:#a9ffdc;
+    background:rgba(0,255,163,.06);
+    border:1px solid rgba(0,255,163,.14);
+}
+
+/* ================= FOOTER ================= */
+
+.footer{
+    margin-top:18px;
+    padding:13px 18px;
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    color:#5e6d84;
+    font-size:9px;
+}
+
+.footer strong{
+    color:#8796ad;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:1250px){
+    .main-grid{
+        grid-template-columns:290px minmax(0,1fr);
+    }
+
+    .right-panel{
+        grid-column:1/-1;
+    }
+}
+
+@media(max-width:800px){
+    .app{
+        padding:10px;
+    }
+
+    .main-grid{
+        grid-template-columns:1fr;
+    }
+
+    .right-panel{
+        grid-column:auto;
+    }
+
+    .topbar{
+        flex-wrap:wrap;
+    }
+
+    .header-actions{
+        width:100%;
+    }
+
+    .header-actions button{
+        flex:1;
+    }
+
+    .preview-card{
+        min-height:420px;
+    }
+
+    .preview-stage{
+        min-height:340px;
+    }
+}
+
+/* ================= SCROLLBAR ================= */
+
+::-webkit-scrollbar{
+    width:7px;
+    height:7px;
+}
+
+::-webkit-scrollbar-track{
+    background:#080d16;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#1b2a3d;
+    border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#29425d;
+}
 </style>
 </head>
+
 <body>
 
-<div class="container">
-  <!-- Header -->
-  <header class="header">
-    <h1>AWS Assessment Manager</h1>
-    <button class="neu-btn neu-btn-primary">+ New Assessment</button>
-  </header>
+<div class="app">
+<div class="shell">
 
-  <!-- Metrics Grid -->
-  <div class="stats-grid">
-    <div class="neu-card stat-card">
-      <span style="color: var(--muted);">Total Audits</span>
-      <div class="stat-value">24</div>
-    </div>
-    <div class="neu-card stat-card">
-      <span style="color: var(--muted);">Compliant Controls</span>
-      <div class="stat-value" style="color: var(--good);">92%</div>
-    </div>
-    <div class="neu-card stat-card">
-      <span style="color: var(--muted);">Action Items</span>
-      <div class="stat-value" style="color: var(--danger);">7</div>
-    </div>
-  </div>
+<!-- HEADER -->
+<header class="topbar">
 
-  <!-- Document Upload Section -->
-  <div class="neu-card">
-    <h3 style="margin-top:0; margin-bottom:1rem;">Import Evidence</h3>
-    <div class="drop-zone">
-      <p style="margin:0; color: var(--muted);">Drag & Drop assessment files (.xlsx, .pdf, .docx) or click to browse</p>
-    </div>
-  </div>
-
-  <!-- Assessment Data Table -->
-  <div class="neu-card">
-    <div class="controls-bar">
-      <input type="text" class="neu-inset search-input" placeholder="Search AWS controls, IDs, or services...">
-      <button class="neu-btn">Filter</button>      <button class="neu-btn">Export</button>
+    <div class="brand">
+        <div class="logo">⌁</div>
+        <div>
+            <h1>NeonOCR</h1>
+            <small>HD DOCUMENT INTELLIGENCE • CLIENT-SIDE OCR</small>
+        </div>
     </div>
 
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Control ID</th>
-            <th>Service</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>S3-001</strong></td>
-            <td>Amazon S3</td>
-            <td><span class="badge badge-good">Compliant</span></td>
-            <td><button class="neu-btn" style="padding: 0.4rem 0.8rem;">Review</button></td>
-          </tr>
-          <tr>
-            <td><strong>IAM-004</strong></td>
-            <td>AWS IAM</td>
-            <td><span class="badge badge-danger">Non-Compliant</span></td>
-            <td><button class="neu-btn" style="padding: 0.4rem 0.8rem;">Remediate</button></td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="status">
+        <span class="status-dot"></span>
+        <span id="systemStatus">ENGINE READY</span>
     </div>
-  </div>
+
+    <div class="header-actions">
+        <button class="neon-btn" id="clearBtn">Clear</button>
+        <button class="neon-btn primary" id="ocrBtn">Run HD OCR</button>
+    </div>
+
+</header>
+
+
+<!-- MAIN -->
+<main class="main-grid">
+
+<!-- LEFT -->
+<section class="card panel">
+
+    <div class="panel-title">
+        <h2>Document Input</h2>
+        <span>LOCAL PROCESSING</span>
+    </div>
+
+    <div class="upload-zone" id="dropZone">
+
+        <div class="upload-icon">⬡</div>
+
+        <strong>Drop documents here</strong>
+
+        <p>
+            Upload ID cards, passports, licenses, certificates,
+            forms, images or PDF documents.
+        </p>
+
+        <button class="neon-btn primary" id="browseBtn">
+            Choose Files
+        </button>
+
+        <input
+            id="fileInput"
+            class="file-input"
+            type="file"
+            multiple
+            accept="
+                image/*,
+                application/pdf,
+                .tif,
+                .tiff,
+                .webp,
+                .jpg,
+                .jpeg,
+                .png
+            "
+        >
+
+    </div>
+
+
+    <div class="doc-buttons">
+
+        <button class="neon-btn" id="frontBtn">
+            + Front
+        </button>
+
+        <button class="neon-btn" id="backBtn">
+            + Back
+        </button>
+
+    </div>
+
+
+    <div style="margin-top:12px;display:grid;gap:9px;">
+
+        <div class="document-slot">
+
+            <div class="slot-head">
+                <span>FRONT / PAGE 1</span>
+                <span id="frontStatus" class="slot-status">EMPTY</span>
+            </div>
+
+            <div id="frontName" class="slot-file">
+                No document
+            </div>
+
+        </div>
+
+
+        <div class="document-slot">
+
+            <div class="slot-head">
+                <span>BACK / PAGE 2</span>
+                <span id="backStatus" class="slot-status">EMPTY</span>
+            </div>
+
+            <div id="backName" class="slot-file">
+                No document
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- OCR SETTINGS -->
+    <div class="panel-title" style="margin-top:20px;">
+        <h2>HD Enhancement</h2>
+        <span>PRE-OCR</span>
+    </div>
+
+
+    <div class="setting">
+
+        <label>
+            Upscale
+            <output id="scaleOutput">2×</output>
+        </label>
+
+        <input
+            id="scaleRange"
+            type="range"
+            min="1"
+            max="4"
+            step=".5"
+            value="2"
+        >
+
+    </div>
+
+
+    <div class="setting">
+
+        <label>
+            Contrast
+            <output id="contrastOutput">1.25</output>
+        </label>
+
+        <input
+            id="contrastRange"
+            type="range"
+            min="0.8"
+            max="2"
+            step=".05"
+            value="1.25"
+        >
+
+    </div>
+
+
+    <div class="setting">
+
+        <label>
+            Sharpness
+            <output id="sharpOutput">1.4</output>
+        </label>
+
+        <input
+            id="sharpRange"
+            type="range"
+            min="0"
+            max="3"
+            step=".1"
+            value="1.4"
+        >
+
+    </div>
+
+
+    <div class="toggle-row">
+
+        <span>Auto grayscale</span>
+
+        <label class="switch">
+            <input id="grayToggle" type="checkbox" checked>
+            <span class="slider"></span>
+        </label>
+
+    </div>
+
+
+    <div class="toggle-row">
+
+        <span>Adaptive threshold</span>
+
+        <label class="switch">
+            <input id="thresholdToggle" type="checkbox">
+            <span class="slider"></span>
+        </label>
+
+    </div>
+
+
+    <div class="toggle-row">
+
+        <span>Deskew / straighten</span>
+
+        <label class="switch">
+            <input id="deskewToggle" type="checkbox" checked>
+            <span class="slider"></span>
+        </label>
+
+    </div>
+
+
+    <div class="toggle-row">
+
+        <span>Remove small noise</span>
+
+        <label class="switch">
+            <input id="noiseToggle" type="checkbox" checked>
+            <span class="slider"></span>
+        </label>
+
+    </div>
+
+
+    <div class="setting">
+
+        <label>
+            OCR language
+        </label>
+
+        <select id="languageSelect">
+
+            <option value="eng">English</option>
+
+            <option value="eng+msa">
+                English + Malay
+            </option>
+
+            <option value="eng+msa+ind">
+                English + Malay + Indonesian
+            </option>
+
+        </select>
+
+    </div>
+
+</section>
+
+
+<!-- CENTER -->
+<section class="center">
+
+    <div class="card preview-card">
+
+        <div class="panel-title">
+
+            <h2>HD Processing Preview</h2>
+
+            <span id="previewLabel">
+                ORIGINAL
+            </span>
+
+        </div>
+
+
+        <div class="preview-stage">
+
+            <div
+                class="preview-empty"
+                id="previewEmpty"
+            >
+
+                <div class="big">▣</div>
+
+                <p>
+                    Upload a document to begin
+                </p>
+
+            </div>
+
+
+            <img
+                id="previewImage"
+                class="preview-image"
+                alt="Document preview"
+            >
+
+            <div
+                id="scanOverlay"
+                class="scan-overlay"
+            ></div>
+
+        </div>
+
+
+        <div class="preview-info">
+
+            <span id="imageInfo">
+                No image loaded
+            </span>
+
+            <span id="processingInfo">
+                Ready
+            </span>
+
+        </div>
+
+
+        <div class="progress-wrap">
+            <div
+                class="progress-bar"
+                id="progressBar"
+            ></div>
+        </div>
+
+
+        <div class="results">
+
+            <div class="metric">
+
+                <small>Document Type</small>
+
+                <strong
+                    id="documentType"
+                    class="cyan"
+                >
+                    —
+                </strong>
+
+            </div>
+
+
+            <div class="metric">
+
+                <small>OCR Confidence</small>
+
+                <strong
+                    id="ocrConfidence"
+                    class="green"
+                >
+                    —
+                </strong>
+
+            </div>
+
+
+            <div class="metric">
+
+                <small>Characters</small>
+
+                <strong id="characterCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="metric">
+
+                <small>Fields</small>
+
+                <strong id="fieldCount">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="alert"
+            class="alert"
+        ></div>
+
+    </div>
+
+
+    <!-- OCR TEXT -->
+    <div class="card panel" style="margin-top:18px;">
+
+        <div class="panel-title">
+
+            <h2>Captured Document Information</h2>
+
+            <span id="textState">
+                WAITING
+            </span>
+
+        </div>
+
+        <div
+            id="ocrText"
+            class="ocr-text"
+        >
+            No OCR result yet.
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- RIGHT -->
+<section class="card panel right-panel">
+
+    <div class="panel-title">
+
+        <h2>Extracted Fields</h2>
+
+        <span>VALIDATED</span>
+
+    </div>
+
+
+    <div class="field">
+
+        <div class="field-head">
+
+            <label>Full Name</label>
+
+            <span
+                id="nameConfidence"
+                class="confidence"
+            >
+                —
+            </span>
+
+        </div>
+
+        <input id="fieldName" type="text">
+
+    </div>
+
+
+    <div class="field">
+
+        <div class="field-head">
+
+            <label>Identification No.</label>
+
+            <span
+                id="idConfidence"
+                class="confidence"
+            >
+                —
+            </span>
+
+        </div>
+
+        <input id="fieldId" type="text">
+
+    </div>
+
+
+    <div class="field">
+
+        <div class="field-head">
+
+            <label>Date of Birth</label>
+
+            <span
+                id="dobConfidence"
+                class="confidence"
+            >
+                —
+            </span>
+
+        </div>
+
+        <input id="fieldDob" type="text">
+
+    </div>
+
+
+    <div class="field">
+
+        <div class="field-head">
+
+            <label>Sex / Jantina</label>
+
+            <span
+                id="genderConfidence"
+                class="confidence"
+            >
+                —
+            </span>
+
+        </div>
+
+        <input id="fieldGender" type="text">
+
+    </div>
+
+
+    <div class="field">
+
+        <div class="field-head">
+
+            <label>Nationality</label>
+
+            <span
+                id="nationalityConfidence"
+                class="confidence"
+            >
+                —
+            </span>
+
+        </div>
+
+        <input id="fieldNationality" type="text">
+
+    </div>
+
+
+    <div class="field">
+
+        <div class="field-head">
+
+            <label>Postcode</label>
+
+            <span
+                id="postcodeConfidence"
+                class="confidence"
+            >
+                —
+            </span>
+
+        </div>
+
+        <input id="fieldPostcode" type="text">
+
+    </div>
+
+
+    <div class="field">
+
+        <div class="field-head">
+
+            <label>State / Country</label>
+
+            <span
+                id="stateConfidence"
+                class="confidence"
+            >
+                —
+            </span>
+
+        </div>
+
+        <input id="fieldState" type="text">
+
+    </div>
+
+
+    <div class="field">
+
+        <div class="field-head">
+
+            <label>Address</label>
+
+            <span
+                id="addressConfidence"
+                class="confidence"
+            >
+                —
+            </span>
+
+        </div>
+
+        <textarea id="fieldAddress"></textarea>
+
+    </div>
+
+
+    <div class="panel-title" style="margin-top:20px;">
+
+        <h2>Validation</h2>
+
+        <span id="validationState">
+            NONE
+        </span>
+
+    </div>
+
+
+    <div
+        id="validationMessages"
+        class="ocr-text"
+        style="max-height:170px;"
+    >
+        No validation performed.
+    </div>
+
+</section>
+
+</main>
+
+
+<footer class="card footer">
+
+    <span>
+        <strong>NeonOCR</strong>
+        • Browser-side OCR
+        • HD preprocessing
+    </span>
+
+    <span>
+        Documents remain in this browser session.
+    </span>
+
+</footer>
+
 </div>
+</div>
+
+
+<script type="module">
+
+/* ============================================================
+   PDF.JS
+============================================================ */
+
+let pdfjsLib = null;
+
+try{
+
+    pdfjsLib = await import(
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs"
+    );
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
+
+}catch(error){
+
+    console.warn(
+        "PDF engine unavailable:",
+        error
+    );
+
+}
+
+
+/* ============================================================
+   APPLICATION STATE
+============================================================ */
+
+const state = {
+
+    files: [],
+
+    front: null,
+
+    back: null,
+
+    activeFile: null,
+
+    activeImage: null,
+
+    enhancedCanvas: null,
+
+    worker: null,
+
+    busy: false,
+
+    lastOCR: "",
+
+    confidence: 0
+
+};
+
+
+/* ============================================================
+   DOM
+============================================================ */
+
+const $ = id =>
+    document.getElementById(id);
+
+const fileInput =
+    $("fileInput");
+
+const dropZone =
+    $("dropZone");
+
+const browseBtn =
+    $("browseBtn");
+
+const frontBtn =
+    $("frontBtn");
+
+const backBtn =
+    $("backBtn");
+
+const ocrBtn =
+    $("ocrBtn");
+
+const clearBtn =
+    $("clearBtn");
+
+const previewImage =
+    $("previewImage");
+
+const previewEmpty =
+    $("previewEmpty");
+
+const progressBar =
+    $("progressBar");
+
+const scanOverlay =
+    $("scanOverlay");
+
+const systemStatus =
+    $("systemStatus");
+
+const alertBox =
+    $("alert");
+
+
+/* ============================================================
+   UPLOAD CONTROLS
+============================================================ */
+
+browseBtn.addEventListener(
+    "click",
+    () => fileInput.click()
+);
+
+frontBtn.addEventListener(
+    "click",
+    () => {
+
+        state.uploadTarget = "front";
+
+        fileInput.click();
+
+    }
+);
+
+backBtn.addEventListener(
+    "click",
+    () => {
+
+        state.uploadTarget = "back";
+
+        fileInput.click();
+
+    }
+);
+
+
+fileInput.addEventListener(
+    "change",
+    event => {
+
+        const files =
+            [...event.target.files];
+
+        if(!files.length)
+            return;
+
+        processSelectedFiles(files);
+
+        fileInput.value = "";
+
+    }
+);
+
+
+/* ============================================================
+   DRAG AND DROP
+============================================================ */
+
+[
+    "dragenter",
+    "dragover"
+].forEach(eventName => {
+
+    dropZone.addEventListener(
+        eventName,
+        event => {
+
+            event.preventDefault();
+
+            dropZone.classList.add(
+                "dragover"
+            );
+
+        }
+    );
+
+});
+
+
+[
+    "dragleave",
+    "drop"
+].forEach(eventName => {
+
+    dropZone.addEventListener(
+        eventName,
+        event => {
+
+            event.preventDefault();
+
+            dropZone.classList.remove(
+                "dragover"
+            );
+
+        }
+    );
+
+});
+
+
+dropZone.addEventListener(
+    "drop",
+    event => {
+
+        const files =
+            [...event.dataTransfer.files];
+
+        processSelectedFiles(files);
+
+    }
+);
+
+
+/* ============================================================
+   FILE VALIDATION
+============================================================ */
+
+function isSupportedFile(file){
+
+    const type =
+        file.type.toLowerCase();
+
+    const name =
+        file.name.toLowerCase();
+
+    return (
+
+        type.startsWith("image/") ||
+
+        type === "application/pdf" ||
+
+        name.endsWith(".tif") ||
+
+        name.endsWith(".tiff")
+
+    );
+
+}
+
+
+function processSelectedFiles(files){
+
+    const valid =
+        files.filter(
+            isSupportedFile
+        );
+
+    if(!valid.length){
+
+        showAlert(
+            "No supported document was selected.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    valid.forEach(
+        (file,index) => {
+
+            state.files.push(file);
+
+            if(
+                state.uploadTarget === "front"
+                && !state.front
+            ){
+
+                state.front = file;
+
+            }
+            else if(
+                state.uploadTarget === "back"
+                && !state.back
+            ){
+
+                state.back = file;
+
+            }
+            else if(
+                !state.front
+            ){
+
+                state.front = file;
+
+            }
+            else if(
+                !state.back
+            ){
+
+                state.back = file;
+
+            }
+
+        }
+    );
+
+    updateSlots();
+
+    const file =
+        state.front || state.files[0];
+
+    if(file)
+        loadPreview(file);
+
+    showAlert(
+        `${valid.length} document${valid.length > 1 ? "s" : ""} loaded successfully.`,
+        "success"
+    );
+
+}
+
+
+/* ============================================================
+   SLOT DISPLAY
+============================================================ */
+
+function updateSlots(){
+
+    if(state.front){
+
+        $("frontStatus").textContent =
+            "READY";
+
+        $("frontStatus").classList.add(
+            "ready"
+        );
+
+        $("frontName").textContent =
+            state.front.name;
+
+    }
+    else{
+
+        $("frontStatus").textContent =
+            "EMPTY";
+
+        $("frontStatus").classList.remove(
+            "ready"
+        );
+
+        $("frontName").textContent =
+            "No document";
+
+    }
+
+
+    if(state.back){
+
+        $("backStatus").textContent =
+            "READY";
+
+        $("backStatus").classList.add(
+            "ready"
+        );
+
+        $("backName").textContent =
+            state.back.name;
+
+    }
+    else{
+
+        $("backStatus").textContent =
+            "EMPTY";
+
+        $("backStatus").classList.remove(
+            "ready"
+        );
+
+        $("backName").textContent =
+            "No document";
+
+    }
+
+}
+
+
+/* ============================================================
+   PREVIEW
+============================================================ */
+
+async function loadPreview(file){
+
+    try{
+
+        state.activeFile = file;
+
+        $("previewLabel").textContent =
+            "LOADING";
+
+        $("processingInfo").textContent =
+            "Preparing document...";
+
+        if(
+            file.type === "application/pdf"
+        ){
+
+            const canvas =
+                await renderPDFPage(
+                    file,
+                    1
+                );
+
+            previewImage.src =
+                canvas.toDataURL(
+                    "image/jpeg",
+                    .92
+                );
+
+            previewImage.style.display =
+                "block";
+
+            previewEmpty.style.display =
+                "none";
+
+            $("imageInfo").textContent =
+                `${canvas.width} × ${canvas.height}px • PDF page 1`;
+
+            $("previewLabel").textContent =
+                "PDF PREVIEW";
+
+            state.activeImage =
+                canvas;
+
+        }
+        else{
+
+            const url =
+                URL.createObjectURL(file);
+
+            previewImage.onload =
+                () => {
+
+                    $("imageInfo").textContent =
+                        `${previewImage.naturalWidth} × ${previewImage.naturalHeight}px`;
+
+                    $("previewLabel").textContent =
+                        "ORIGINAL";
+
+                    $("processingInfo").textContent =
+                        "Ready for HD enhancement";
+
+                    state.activeImage =
+                        previewImage;
+
+                };
+
+            previewImage.src =
+                url;
+
+            previewImage.style.display =
+                "block";
+
+            previewEmpty.style.display =
+                "none";
+
+        }
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        showAlert(
+            "Unable to preview this document.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   PDF RENDERING
+============================================================ */
+
+async function renderPDFPage(
+    file,
+    pageNumber = 1,
+    scale = 2
+){
+
+    if(!pdfjsLib){
+
+        throw new Error(
+            "PDF engine unavailable."
+        );
+
+    }
+
+    const buffer =
+        await file.arrayBuffer();
+
+    const pdf =
+        await pdfjsLib.getDocument({
+            data:buffer
+        }).promise;
+
+    const page =
+        await pdf.getPage(
+            pageNumber
+        );
+
+    const viewport =
+        page.getViewport({
+            scale
+        });
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.width =
+        Math.ceil(viewport.width);
+
+    canvas.height =
+        Math.ceil(viewport.height);
+
+    const context =
+        canvas.getContext(
+            "2d",
+            {
+                willReadFrequently:true
+            }
+        );
+
+    await page.render({
+        canvasContext:context,
+        viewport
+    }).promise;
+
+    return canvas;
+
+}
+
+
+/* ============================================================
+   IMAGE TO CANVAS
+============================================================ */
+
+async function fileToCanvas(file){
+
+    if(
+        file.type === "application/pdf"
+    ){
+
+        return await renderPDFPage(
+            file,
+            1,
+            Number(
+                $("scaleRange").value
+            )
+        );
+
+    }
+
+
+    const bitmap =
+        await createImageBitmap(file);
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.width =
+        bitmap.width;
+
+    canvas.height =
+        bitmap.height;
+
+    const ctx =
+        canvas.getContext(
+            "2d",
+            {
+                willReadFrequently:true
+            }
+        );
+
+    ctx.drawImage(
+        bitmap,
+        0,
+        0
+    );
+
+    bitmap.close();
+
+    return canvas;
+
+}
+
+
+/* ============================================================
+   HD IMAGE ENHANCEMENT
+============================================================ */
+
+function enhanceCanvas(source){
+
+    const scale =
+        Number(
+            $("scaleRange").value
+        );
+
+    const contrast =
+        Number(
+            $("contrastRange").value
+        );
+
+    const sharpness =
+        Number(
+            $("sharpRange").value
+        );
+
+    const grayscale =
+        $("grayToggle").checked;
+
+    const threshold =
+        $("thresholdToggle").checked;
+
+    const noise =
+        $("noiseToggle").checked;
+
+
+    const maxDimension =
+        6000;
+
+    let targetWidth =
+        Math.round(
+            source.width * scale
+        );
+
+    let targetHeight =
+        Math.round(
+            source.height * scale
+        );
+
+
+    /*
+       Prevent browser memory explosions.
+       OCR quality benefits from high resolution,
+       but an unlimited 4x image can crash a tab.
+    */
+
+    const largest =
+        Math.max(
+            targetWidth,
+            targetHeight
+        );
+
+    if(
+        largest > maxDimension
+    ){
+
+        const ratio =
+            maxDimension / largest;
+
+        targetWidth =
+            Math.round(
+                targetWidth * ratio
+            );
+
+        targetHeight =
+            Math.round(
+                targetHeight * ratio
+            );
+
+    }
+
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.width =
+        targetWidth;
+
+    canvas.height =
+        targetHeight;
+
+    const ctx =
+        canvas.getContext(
+            "2d",
+            {
+                willReadFrequently:true
+            }
+        );
+
+    ctx.imageSmoothingEnabled =
+        true;
+
+    ctx.imageSmoothingQuality =
+        "high";
+
+    ctx.drawImage(
+        source,
+        0,
+        0,
+        targetWidth,
+        targetHeight
+    );
+
+
+    let imageData =
+        ctx.getImageData(
+            0,
+            0,
+            targetWidth,
+            targetHeight
+        );
+
+    let data =
+        imageData.data;
+
+
+    /*
+       Grayscale + contrast
+    */
+
+    for(
+        let i = 0;
+        i < data.length;
+        i += 4
+    ){
+
+        let r = data[i];
+        let g = data[i+1];
+        let b = data[i+2];
+
+        if(grayscale){
+
+            const y =
+                0.299 * r +
+                0.587 * g +
+                0.114 * b;
+
+            r = g = b = y;
+
+        }
+
+        r =
+            ((r - 128) * contrast) +
+            128;
+
+        g =
+            ((g - 128) * contrast) +
+            128;
+
+        b =
+            ((b - 128) * contrast) +
+            128;
+
+        data[i] =
+            clamp(r);
+
+        data[i+1] =
+            clamp(g);
+
+        data[i+2] =
+            clamp(b);
+
+    }
+
+
+    /*
+       Light denoise
+    */
+
+    if(noise){
+
+        data =
+            medianFilter(
+                data,
+                targetWidth,
+                targetHeight
+            );
+
+        imageData.data.set(data);
+
+    }
+
+
+    /*
+       Adaptive threshold
+    */
+
+    if(threshold){
+
+        adaptiveThreshold(
+            imageData,
+            targetWidth,
+            targetHeight
+        );
+
+    }
+
+
+    /*
+       Sharpen
+    */
+
+    if(sharpness > 0){
+
+        imageData =
+            sharpenImage(
+                imageData,
+                targetWidth,
+                targetHeight,
+                sharpness
+            );
+
+    }
+
+
+    ctx.putImageData(
+        imageData,
+        0,
+        0
+    );
+
+
+    return canvas;
+
+}
+
+
+function clamp(value){
+
+    return Math.max(
+        0,
+        Math.min(
+            255,
+            value
+        )
+    );
+
+}
+
+
+/* ============================================================
+   MEDIAN / NOISE FILTER
+============================================================ */
+
+function medianFilter(
+    data,
+    width,
+    height
+){
+
+    const output =
+        new Uint8ClampedArray(
+            data
+        );
+
+    /*
+       Lightweight noise reduction.
+       Sample every pixel but only inspect
+       nearby luminance values.
+    */
+
+    for(
+        let y = 1;
+        y < height - 1;
+        y++
+    ){
+
+        for(
+            let x = 1;
+            x < width - 1;
+            x++
+        ){
+
+            const idx =
+                (y * width + x) * 4;
+
+            const center =
+                data[idx];
+
+            /*
+               Only modify isolated extreme pixels.
+            */
+
+            let darkNeighbours = 0;
+            let lightNeighbours = 0;
+
+            for(
+                let dy = -1;
+                dy <= 1;
+                dy++
+            ){
+
+                for(
+                    let dx = -1;
+                    dx <= 1;
+                    dx++
+                ){
+
+                    if(
+                        dx === 0 &&
+                        dy === 0
+                    )
+                        continue;
+
+                    const n =
+                        ((y + dy) * width + (x + dx)) * 4;
+
+                    const value =
+                        data[n];
+
+                    if(value < 60)
+                        darkNeighbours++;
+
+                    if(value > 195)
+                        lightNeighbours++;
+
+                }
+
+            }
+
+
+            if(
+                center < 35 &&
+                lightNeighbours >= 6
+            ){
+
+                output[idx] =
+                output[idx+1] =
+                output[idx+2] = 180;
+
+            }
+
+            else if(
+                center > 220 &&
+                darkNeighbours >= 6
+            ){
+
+                output[idx] =
+                output[idx+1] =
+                output[idx+2] = 80;
+
+            }
+
+        }
+
+    }
+
+    return output;
+
+}
+
+
+/* ============================================================
+   ADAPTIVE THRESHOLD
+============================================================ */
+
+function adaptiveThreshold(
+    imageData,
+    width,
+    height
+){
+
+    const data =
+        imageData.data;
+
+    const gray =
+        new Uint8Array(
+            width * height
+        );
+
+
+    for(
+        let i = 0;
+        i < gray.length;
+        i++
+    ){
+
+        const p =
+            i * 4;
+
+        gray[i] =
+            Math.round(
+                .299 * data[p] +
+                .587 * data[p+1] +
+                .114 * data[p+2]
+            );
+
+    }
+
+
+    const radius = 7;
+
+    for(
+        let y = 0;
+        y < height;
+        y++
+    ){
+
+        for(
+            let x = 0;
+            x < width;
+            x++
+        ){
+
+            let sum = 0;
+            let count = 0;
+
+            const y0 =
+                Math.max(
+                    0,
+                    y - radius
+                );
+
+            const y1 =
+                Math.min(
+                    height - 1,
+                    y + radius
+                );
+
+            const x0 =
+                Math.max(
+                    0,
+                    x - radius
+                );
+
+            const x1 =
+                Math.min(
+                    width - 1,
+                    x + radius
+                );
+
+            for(
+                let yy = y0;
+                yy <= y1;
+                yy++
+            ){
+
+                for(
+                    let xx = x0;
+                    xx <= x1;
+                    xx++
+                ){
+
+                    sum +=
+                        gray[
+                            yy * width + xx
+                        ];
+
+                    count++;
+
+                }
+
+            }
+
+            const average =
+                sum / count;
+
+            const idx =
+                (y * width + x) * 4;
+
+            const value =
+                gray[
+                    y * width + x
+                ];
+
+            const out =
+                value >
+                average - 10
+                ? 255
+                : 0;
+
+            data[idx] =
+            data[idx+1] =
+            data[idx+2] =
+                out;
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   SHARPEN
+============================================================ */
+
+function sharpenImage(
+    imageData,
+    width,
+    height,
+    amount
+){
+
+    const src =
+        imageData.data;
+
+    const out =
+        new Uint8ClampedArray(
+            src
+        );
+
+
+    /*
+       Unsharp-style sharpening.
+       Avoid excessive sharpening because OCR
+       engines can interpret halos as characters.
+    */
+
+    const a =
+        Math.min(
+            amount,
+            3
+        ) / 2;
+
+
+    for(
+        let y = 1;
+        y < height - 1;
+        y++
+    ){
+
+        for(
+            let x = 1;
+            x < width - 1;
+            x++
+        ){
+
+            const i =
+                (y * width + x) * 4;
+
+            const up =
+                ((y - 1) * width + x) * 4;
+
+            const down =
+                ((y + 1) * width + x) * 4;
+
+            const left =
+                (y * width + x - 1) * 4;
+
+            const right =
+                (y * width + x + 1) * 4;
+
+
+            for(
+                let c = 0;
+                c < 3;
+                c++
+            ){
+
+                const value =
+                    src[i+c] * (1 + a) -
+                    (
+                        src[up+c] +
+                        src[down+c] +
+                        src[left+c] +
+                        src[right+c]
+                    ) * (a / 4);
+
+                out[i+c] =
+                    clamp(value);
+
+            }
+
+        }
+
+    }
+
+
+    imageData.data.set(out);
+
+    return imageData;
+
+}
+
+
+/* ============================================================
+   PREPROCESS ACTIVE DOCUMENT
+============================================================ */
+
+async function preprocess(file){
+
+    systemStatus.textContent =
+        "HD ENHANCEMENT";
+
+    $("processingInfo").textContent =
+        "Upscaling + clarity enhancement...";
+
+    $("previewLabel").textContent =
+        "HD ENHANCED";
+
+    scanOverlay.style.display =
+        "block";
+
+
+    const original =
+        await fileToCanvas(file);
+
+    const enhanced =
+        enhanceCanvas(original);
+
+    state.enhancedCanvas =
+        enhanced;
+
+
+    previewImage.src =
+        enhanced.toDataURL(
+            "image/jpeg",
+            .95
+        );
+
+    previewImage.style.display =
+        "block";
+
+    previewEmpty.style.display =
+        "none";
+
+
+    $("imageInfo").textContent =
+        `${enhanced.width} × ${enhanced.height}px • HD OCR source`;
+
+    $("processingInfo").textContent =
+        "Enhanced image ready";
+
+
+    return enhanced;
+
+}
+
+
+/* ============================================================
+   OCR ENGINE
+============================================================ */
+
+async function createOCRWorker(){
+
+    if(state.worker)
+        return state.worker;
+
+
+    const lang =
+        $("languageSelect").value;
+
+
+    systemStatus.textContent =
+        "LOADING OCR ENGINE";
+
+
+    state.worker =
+        await Tesseract.createWorker(
+            lang,
+            1,
+            {
+
+                logger: message => {
+
+                    if(
+                        typeof message.progress ===
+                        "number"
+                    ){
+
+                        const percent =
+                            Math.round(
+                                message.progress * 100
+                            );
+
+                        progressBar.style.width =
+                            `${percent}%`;
+
+                        if(message.status){
+
+                            $("processingInfo").textContent =
+                                message.status;
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    /*
+       OCR segmentation mode.
+
+       PSM 3 is a good general-purpose mode
+       for documents with multiple blocks.
+    */
+
+    await state.worker.setParameters({
+
+        tessedit_pageseg_mode:
+            Tesseract.PSM.AUTO,
+
+        preserve_interword_spaces:
+            "1"
+
+    });
+
+
+    systemStatus.textContent =
+        "OCR ENGINE READY";
+
+
+    return state.worker;
+
+}
+
+
+/* ============================================================
+   OCR ACTIVE DOCUMENT
+============================================================ */
+
+async function runOCR(){
+
+    if(state.busy)
+        return;
+
+
+    if(
+        !state.front &&
+        !state.files.length
+    ){
+
+        showAlert(
+            "Upload at least one document first.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    state.busy = true;
+
+    ocrBtn.disabled = true;
+
+    progressBar.style.width = "0%";
+
+    scanOverlay.style.display =
+        "block";
+
+    alertBox.className =
+        "alert";
+
+
+    try{
+
+        const documents =
+            [];
+
+        if(state.front)
+            documents.push({
+                file:state.front,
+                side:"Front"
+            });
+
+        if(state.back)
+            documents.push({
+                file:state.back,
+                side:"Back"
+            });
+
+
+        if(!documents.length){
+
+            state.files.forEach(
+                file =>
+                    documents.push({
+                        file,
+                        side:"Document"
+                    })
+            );
+
+        }
+
+
+        let combinedText =
+            "";
+
+        let totalConfidence = 0;
+
+        let confidenceCount = 0;
+
+
+        for(
+            let i = 0;
+            i < documents.length;
+            i++
+        ){
+
+            const item =
+                documents[i];
+
+            $("processingInfo").textContent =
+                `Enhancing ${item.side} ${i+1}/${documents.length}`;
+
+
+            const canvas =
+                await preprocess(
+                    item.file
+                );
+
+
+            const worker =
+                await createOCRWorker();
+
+
+            $("processingInfo").textContent =
+                `Reading ${item.side} ${i+1}/${documents.length}`;
+
+
+            const result =
+                await worker.recognize(
+                    canvas
+                );
+
+
+            const text =
+                result.data.text || "";
+
+
+            combinedText +=
+                `\n===== ${item.side.toUpperCase()} =====\n\n` +
+                text.trim() +
+                "\n";
+
+
+            if(
+                typeof result.data.confidence ===
+                "number"
+            ){
+
+                totalConfidence +=
+                    result.data.confidence;
+
+                confidenceCount++;
+
+            }
+
+        }
+
+
+        state.lastOCR =
+            combinedText.trim();
+
+
+        state.confidence =
+            confidenceCount
+            ? totalConfidence / confidenceCount
+            : 0;
+
+
+        displayOCR(
+            state.lastOCR,
+            state.confidence
+        );
+
+
+        const extracted =
+            extractFields(
+                state.lastOCR
+            );
+
+
+        displayFields(
+            extracted
+        );
+
+
+        const validation =
+            validateFields(
+                extracted,
+                state.lastOCR
+            );
+
+
+        displayValidation(
+            validation
+        );
+
+
+        $("documentType").textContent =
+            detectDocumentType(
+                state.lastOCR
+            );
+
+
+        $("ocrConfidence").textContent =
+            `${state.confidence.toFixed(1)}%`;
+
+
+        $("characterCount").textContent =
+            state.lastOCR.replace(
+                /\s/g,
+                ""
+            ).length;
+
+
+        $("fieldCount").textContent =
+            countDetectedFields(
+                extracted
+            );
+
+
+        $("textState").textContent =
+            "CAPTURED";
+
+
+        $("processingInfo").textContent =
+            "OCR complete";
+
+
+        systemStatus.textContent =
+            "PROCESS COMPLETE";
+
+
+        progressBar.style.width =
+            "100%";
+
+
+        showAlert(
+            "OCR completed. Ambiguous fields are flagged rather than guessed.",
+            "success"
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "OCR error:",
+            error
+        );
+
+        systemStatus.textContent =
+            "OCR ERROR";
+
+        $("processingInfo").textContent =
+            "Processing failed";
+
+        showAlert(
+            `OCR processing failed: ${error.message || error}`,
+            "error"
+        );
+
+    }
+    finally{
+
+        state.busy = false;
+
+        ocrBtn.disabled = false;
+
+        scanOverlay.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* ============================================================
+   DISPLAY OCR
+============================================================ */
+
+function displayOCR(
+    text,
+    confidence
+){
+
+    $("ocrText").textContent =
+        text || "No readable text detected.";
+
+    $("textState").textContent =
+        text
+        ? `${confidence.toFixed(1)}% CONFIDENCE`
+        : "NO TEXT";
+
+}
+
+
+/* ============================================================
+   DOCUMENT TYPE
+============================================================ */
+
+function detectDocumentType(text){
+
+    const t =
+        normalize(text);
+
+
+    if(
+        /passport|international passport|p<...|nationality/.test(t)
+    ){
+
+        return "Passport";
+
+    }
+
+
+    if(
+        /mykad|kad pengenalan malaysia|warganegara malaysia|jantina/.test(t)
+    ){
+
+        return "Malaysian NRIC / MyKad";
+
+    }
+
+
+    if(
+        /driving licence|driving license|lesen memandu|lesen/.test(t)
+    ){
+
+        return "Driving Licence";
+
+    }
+
+
+    if(
+        /cidb|construction industry development board/.test(t)
+    ){
+
+        return "CIDB Card";
+
+    }
+
+
+    if(
+        /niosh/.test(t)
+    ){
+
+        return "NIOSH Card";
+
+    }
+
+
+    if(
+        /employee|staff|employee no|staff no/.test(t)
+    ){
+
+        return "Employee / Staff Card";
+
+    }
+
+
+    if(
+        /certificate|certification|sijil/.test(t)
+    ){
+
+        return "Certificate";
+
+    }
+
+
+    return "General Document";
+
+}
+
+
+/* ============================================================
+   FIELD EXTRACTION
+============================================================ */
+
+function extractFields(text){
+
+    const normalized =
+        normalize(text);
+
+    const lines =
+        text
+            .split(/\r?\n/)
+            .map(
+                line =>
+                    line
+                        .replace(
+                            /[ \t]+/g,
+                            " "
+                        )
+                        .trim()
+            )
+            .filter(Boolean);
+
+
+    const fields = {
+
+        name: "",
+
+        id: "",
+
+        dob: "",
+
+        gender: "",
+
+        nationality: "",
+
+        postcode: "",
+
+        state: "",
+
+        address: ""
+
+    };
+
+
+    /*
+       ID / NRIC
+    */
+
+    const idPatterns = [
+
+        /\b\d{6}[-\s]?\d{2}[-\s]?\d{4}\b/g,
+
+        /\b\d{6}\s?\d{6}\b/g,
+
+        /\b[A-Z]\d{7,12}\b/gi
+
+    ];
+
+
+    for(
+        const pattern of idPatterns
+    ){
+
+        const match =
+            normalized.match(
+                pattern
+            );
+
+        if(match){
+
+            fields.id =
+                cleanID(
+                    match[0]
+                );
+
+            break;
+
+        }
+
+    }
+
+
+    /*
+       DOB from Malaysian NRIC.
+    */
+
+    if(fields.id){
+
+        const digits =
+            fields.id.replace(
+                /\D/g,
+                ""
+            );
+
+
+        if(
+            digits.length === 12
+        ){
+
+            fields.dob =
+                inferMalaysianDOB(
+                    digits.substring(
+                        0,
+                        6
+                    )
+                );
+
+        }
+
+    }
+
+
+    /*
+       Explicit DOB labels.
+    */
+
+    if(!fields.dob){
+
+        const dobMatch =
+            normalized.match(
+                /(?:date of birth|dob|tarikh lahir|birth date)\s*[:\-]?\s*([0-9]{1,4}[\/\-.][0-9]{1,2}[\/\-.][0-9]{1,4})/i
+            );
+
+        if(dobMatch){
+
+            fields.dob =
+                dobMatch[1];
+
+        }
+
+    }
+
+
+    /*
+       Gender
+    */
+
+    if(
+        /\b(?:sex|gender|jantina)\s*[:\-]?\s*(male|female|m|f|lelaki|perempuan)\b/i.test(text)
+    ){
+
+        const match =
+            text.match(
+                /\b(?:sex|gender|jantina)\s*[:\-]?\s*(male|female|m|f|lelaki|perempuan)\b/i
+            );
+
+        fields.gender =
+            mapGender(
+                match[1]
+            );
+
+    }
+    else if(
+        fields.id
+    ){
+
+        const digits =
+            fields.id.replace(
+                /\D/g,
+                ""
+            );
+
+        if(
+            digits.length === 12
+        ){
+
+            const last =
+                Number(
+                    digits.charAt(
+                        11
+                    )
+                );
+
+            fields.gender =
+                last % 2
+                ? "M"
+                : "F";
+
+        }
+
+    }
+
+
+    /*
+       Nationality
+    */
+
+    if(
+        /warganegara malaysia|malaysian citizen|malaysian/i.test(text)
+    ){
+
+        fields.nationality =
+            "Malaysia";
+
+    }
+    else if(
+        /warganegara/i.test(text)
+    ){
+
+        const line =
+            lines.find(
+                l =>
+                    /warganegara/i.test(l)
+            );
+
+        if(line){
+
+            const after =
+                line.split(
+                    /[:\-]/,
+                    2
+                )[1];
+
+            if(after)
+                fields.nationality =
+                    after.trim();
+
+        }
+
+    }
+
+
+    /*
+       Postcode
+    */
+
+    const postcodes =
+        normalized.match(
+            /\b\d{5}\b/g
+        );
+
+
+    if(postcodes){
+
+        /*
+           Prefer a postcode appearing near
+           address-like text.
+        */
+
+        const addressLineIndex =
+            lines.findIndex(
+                line =>
+                    /jalan|jln|road|street|lorong|taman|bandar|kg\.?|kampung|no\.?|address/i.test(line)
+            );
+
+
+        if(
+            addressLineIndex >= 0
+        ){
+
+            const nearby =
+                lines
+                    .slice(
+                        addressLineIndex,
+                        addressLineIndex + 5
+                    )
+                    .join(" ");
+
+            const nearbyPostcode =
+                nearby.match(
+                    /\b\d{5}\b/
+                );
+
+            if(nearbyPostcode){
+
+                fields.postcode =
+                    nearbyPostcode[0];
+
+            }
+
+        }
+
+
+        if(!fields.postcode){
+
+            fields.postcode =
+                postcodes[0];
+
+        }
+
+    }
+
+
+    /*
+       State / country
+    */
+
+    const states = [
+
+        "Johor",
+        "Kedah",
+        "Kelantan",
+        "Melaka",
+        "Malacca",
+        "Negeri Sembilan",
+        "Pahang",
+        "Penang",
+        "Pulau Pinang",
+        "Perak",
+        "Perlis",
+        "Sabah",
+        "Sarawak",
+        "Selangor",
+        "Terengganu",
+        "Kuala Lumpur",
+        "Putrajaya",
+        "Labuan"
+
+    ];
+
+
+    const foundState =
+        states.find(
+            s =>
+                new RegExp(
+                    `\\b${escapeRegex(s)}\\b`,
+                    "i"
+                ).test(text)
+        );
+
+
+    if(foundState){
+
+        fields.state =
+            foundState;
+
+    }
+
+
+    /*
+       Address
+    */
+
+    fields.address =
+        extractAddress(
+            lines,
+            fields.postcode,
+            fields.state
+        );
+
+
+    /*
+       Name
+    */
+
+    fields.name =
+        extractName(
+            lines,
+            fields
+        );
+
+
+    return fields;
+
+}
+
+
+/* ============================================================
+   NAME EXTRACTION
+============================================================ */
+
+function extractName(
+    lines,
+    fields
+){
+
+    const excluded = [
+
+        "mykad",
+        "kad pengenalan malaysia",
+        "malaysia",
+        "malaysian",
+        "warganegara",
+        "nationality",
+        "address",
+        "alamat",
+        "date of birth",
+        "tarikh lahir",
+        "gender",
+        "jantina",
+        "sex",
+        "passport",
+        "driving licence",
+        "driving license",
+        "lesen",
+        "cidb",
+        "niosh"
+
+    ];
+
+
+    /*
+       Strong label-based extraction.
+    */
+
+    for(
+        let i = 0;
+        i < lines.length;
+        i++
+    ){
+
+        const line =
+            lines[i];
+
+
+        const labelMatch =
+            line.match(
+                /^(?:name|full name|nama penuh|nama)\s*[:\-]?\s*(.*)$/i
+            );
+
+
+        if(labelMatch){
+
+            let name =
+                labelMatch[1].trim();
+
+
+            /*
+               Some cards put the actual name
+               on the next line.
+            */
+
+            if(
+                name.length < 3 &&
+                lines[i+1]
+            ){
+
+                name =
+                    lines[i+1];
+
+            }
+
+
+            if(
+                isPlausibleName(
+                    name
+                )
+            ){
+
+                return normalizeName(
+                    name
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /*
+       Search for common Malaysian naming
+       patterns such as:
+       A/L, A/P, BIN, BINTI.
+    */
+
+    for(
+        const line of lines
+    ){
+
+        if(
+            /\b(?:A\/L|A\/P|A L|A P|BIN|BINTI)\b/i.test(line)
+            &&
+            isPlausibleName(line)
+        ){
+
+            return normalizeName(
+                line
+            );
+
+        }
+
+    }
+
+
+    /*
+       General multi-word person-name heuristic.
+    */
+
+    const candidates =
+        lines.filter(
+            line =>
+                isPlausibleName(
+                    line
+                ) &&
+                !excluded.some(
+                    word =>
+                        line.toLowerCase()
+                            .includes(word)
+                )
+        );
+
+
+    if(candidates.length){
+
+        /*
+           Prefer 2–5 word candidates.
+        */
+
+        candidates.sort(
+            (a,b) =>
+                scoreName(b) -
+                scoreName(a)
+        );
+
+        return normalizeName(
+            candidates[0]
+        );
+
+    }
+
+
+    return "";
+
+}
+
+
+/* ============================================================
+   NAME SCORING
+============================================================ */
+
+function scoreName(value){
+
+    const words =
+        value
+            .split(/\s+/)
+            .filter(Boolean);
+
+    let score = 0;
+
+    if(
+        words.length >= 2 &&
+        words.length <= 6
+    )
+        score += 5;
+
+    if(
+        /^[A-Za-zÀ-ÿ .'/]+$/.test(
+            value
+        )
+    )
+        score += 3;
+
+    if(
+        /\b(?:A\/L|A\/P|BIN|BINTI)\b/i.test(
+            value
+        )
+    )
+        score += 6;
+
+    if(
+        /\d/.test(value)
+    )
+        score -= 8;
+
+    if(
+        /@|https?:|www\.|email/i.test(
+            value
+        )
+    )
+        score -= 10;
+
+    return score;
+
+}
+
+
+function isPlausibleName(value){
+
+    if(!value)
+        return false;
+
+    const clean =
+        value.trim();
+
+    if(
+        clean.length < 3 ||
+        clean.length > 100
+    )
+        return false;
+
+    if(
+        /\d{3,}/.test(clean)
+    )
+        return false;
+
+    if(
+        /@|https?:|www\./i.test(clean)
+    )
+        return false;
+
+    const words =
+        clean.split(/\s+/);
+
+    if(
+        words.length < 2
+    )
+        return false;
+
+    return true;
+
+}
+
+
+function normalizeName(name){
+
+    return name
+        .replace(
+            /\s+/g,
+            " "
+        )
+        .replace(
+            /^[^A-Za-zÀ-ÿ]+/,
+            ""
+        )
+        .trim();
+
+}
+
+
+/* ============================================================
+   ADDRESS EXTRACTION
+============================================================ */
+
+function extractAddress(
+    lines,
+    postcode,
+    state
+){
+
+    const addressKeywords =
+        /jalan|jln|road|street|st\.|lorong|lane|taman|bandar|kampung|kg\.?|no\.?|address|alamat|residence|apartment|condominium|condo|flat|persiaran|lebuh/i;
+
+
+    let candidates = [];
+
+
+    lines.forEach(
+        (line,index) => {
+
+            if(
+                addressKeywords.test(
+                    line
+                )
+            ){
+
+                candidates.push(
+                    index
+                );
+
+            }
+
+        }
+    );
+
+
+    let selected = [];
+
+
+    if(candidates.length){
+
+        const start =
+            candidates[0];
+
+        selected =
+            lines.slice(
+                start,
+                Math.min(
+                    lines.length,
+                    start + 6
+                )
+            );
+
+    }
+
+
+    /*
+       If postcode is available,
+       include nearby lines.
+    */
+
+    if(
+        postcode &&
+        !selected.length
+    ){
+
+        const idx =
+            lines.findIndex(
+                line =>
+                    line.includes(
+                        postcode
+                    )
+            );
+
+        if(idx >= 0){
+
+            selected =
+                lines.slice(
+                    Math.max(
+                        0,
+                        idx - 3
+                    ),
+                    Math.min(
+                        lines.length,
+                        idx + 2
+                    )
+                );
+
+        }
+
+    }
+
+
+    /*
+       Add state if not already present.
+    */
+
+    if(
+        state &&
+        selected.length &&
+        !selected.some(
+            line =>
+                line.toLowerCase()
+                    .includes(
+                        state.toLowerCase()
+                    )
+        )
+    ){
+
+        selected.push(
+            state
+        );
+
+    }
+
+
+    return selected
+        .filter(
+            line =>
+                line.length >= 3
+        )
+        .join(", ");
+
+}
+
+
+/* ============================================================
+   DOB
+============================================================ */
+
+function inferMalaysianDOB(
+    yymmdd
+){
+
+    if(
+        !/^\d{6}$/.test(
+            yymmdd
+        )
+    )
+        return "";
+
+
+    const yy =
+        Number(
+            yymmdd.substring(
+                0,
+                2
+            )
+        );
+
+    const mm =
+        Number(
+            yymmdd.substring(
+                2,
+                4
+            )
+        );
+
+    const dd =
+        Number(
+            yymmdd.substring(
+                4,
+                6
+            )
+        );
+
+
+    if(
+        mm < 1 ||
+        mm > 12 ||
+        dd < 1 ||
+        dd > 31
+    )
+        return "";
+
+
+    /*
+       Century heuristic.
+       NRIC two-digit year interpretation:
+       current-year window avoids impossible future ages.
+    */
+
+    const currentYear =
+        new Date().getFullYear();
+
+    const currentYY =
+        currentYear % 100;
+
+    const century =
+        yy <= currentYY
+        ? 2000
+        : 1900;
+
+
+    return `${String(
+        dd
+    ).padStart(2,"0")}/${String(
+        mm
+    ).padStart(2,"0")}/${century + yy}`;
+
+}
+
+
+/* ============================================================
+   GENDER
+============================================================ */
+
+function mapGender(
+    value
+){
+
+    const v =
+        value
+            .toLowerCase()
+            .trim();
+
+
+    if(
+        ["m","male","lelaki"]
+            .includes(v)
+    )
+        return "M";
+
+
+    if(
+        ["f","female","perempuan"]
+            .includes(v)
+    )
+        return "F";
+
+
+    return value;
+
+}
+
+
+/* ============================================================
+   ID CLEANING
+============================================================ */
+
+function cleanID(
+    value
+){
+
+    return value
+        .replace(
+            /[^\dA-Za-z]/g,
+            ""
+        );
+
+}
+
+
+/* ============================================================
+   FIELD DISPLAY
+============================================================ */
+
+function displayFields(
+    fields
+){
+
+    setField(
+        "fieldName",
+        "nameConfidence",
+        fields.name,
+        fields.name
+            ? "high"
+            : "low"
+    );
+
+
+    setField(
+        "fieldId",
+        "idConfidence",
+        fields.id,
+        confidenceForID(
+            fields.id
+        )
+    );
+
+
+    setField(
+        "fieldDob",
+        "dobConfidence",
+        fields.dob,
+        fields.dob
+            ? "high"
+            : "low"
+    );
+
+
+    setField(
+        "fieldGender",
+        "genderConfidence",
+        fields.gender,
+        fields.gender
+            ? "high"
+            : "low"
+    );
+
+
+    setField(
+        "fieldNationality",
+        "nationalityConfidence",
+        fields.nationality,
+        fields.nationality
+            ? "high"
+            : "low"
+    );
+
+
+    setField(
+        "fieldPostcode",
+        "postcodeConfidence",
+        fields.postcode,
+        fields.postcode
+            ? "high"
+            : "low"
+    );
+
+
+    setField(
+        "fieldState",
+        "stateConfidence",
+        fields.state,
+        fields.state
+            ? "high"
+            : "low"
+    );
+
+
+    setField(
+        "fieldAddress",
+        "addressConfidence",
+        fields.address,
+        fields.address
+            ? "medium"
+            : "low"
+    );
+
+}
+
+
+function setField(
+    fieldId,
+    confidenceId,
+    value,
+    level
+){
+
+    $(fieldId).value =
+        value || "";
+
+
+    const badge =
+        $(confidenceId);
+
+    badge.textContent =
+        level === "high"
+        ? "HIGH"
+        : level === "medium"
+            ? "REVIEW"
+            : "UNCERTAIN";
+
+
+    badge.className =
+        `confidence ${level}`;
+
+}
+
+
+/* ============================================================
+   ID CONFIDENCE
+============================================================ */
+
+function confidenceForID(
+    id
+){
+
+    if(
+        /^\d{12}$/.test(
+            id
+        )
+    )
+        return "high";
+
+
+    if(
+        /^[A-Z]\d{7,12}$/i.test(
+            id
+        )
+    )
+        return "high";
+
+
+    if(id)
+        return "medium";
+
+
+    return "low";
+
+}
+
+
+/* ============================================================
+   VALIDATION
+============================================================ */
+
+function validateFields(
+    fields,
+    text
+){
+
+    const messages =
+        [];
+
+
+    /*
+       ID
+    */
+
+    if(fields.id){
+
+        const digits =
+            fields.id.replace(
+                /\D/g,
+                ""
+            );
+
+
+        if(
+            digits.length === 12
+        ){
+
+            messages.push(
+                "✓ Identification number has 12 digits."
+            );
+
+        }
+        else if(
+            digits.length >= 8
+        ){
+
+            messages.push(
+                "⚠ Identification number detected but format requires review."
+            );
+
+        }
+        else{
+
+            messages.push(
+                "⚠ Identification number is unusually short."
+            );
+
+        }
+
+    }
+    else{
+
+        messages.push(
+            "⚠ No reliable identification number detected."
+        );
+
+    }
+
+
+    /*
+       DOB
+    */
+
+    if(fields.dob){
+
+        messages.push(
+            "✓ Date of birth detected."
+        );
+
+    }
+    else{
+
+        messages.push(
+            "⚠ Date of birth could not be confidently extracted."
+        );
+
+    }
+
+
+    /*
+       Gender
+    */
+
+    if(
+        fields.gender === "M" ||
+        fields.gender === "F"
+    ){
+
+        messages.push(
+            `✓ Sex normalized to ${fields.gender}.`
+        );
+
+    }
+    else{
+
+        messages.push(
+            "⚠ Sex / Jantina requires review."
+        );
+
+    }
+
+
+    /*
+       Nationality
+    */
+
+    if(fields.nationality){
+
+        messages.push(
+            `✓ Nationality detected: ${fields.nationality}.`
+        );
+
+    }
+    else{
+
+        messages.push(
+            "⚠ Nationality not confidently detected."
+        );
+
+    }
+
+
+    /*
+       Address
+    */
+
+    if(fields.postcode){
+
+        messages.push(
+            `✓ Postcode detected: ${fields.postcode}.`
+        );
+
+    }
+    else{
+
+        messages.push(
+            "⚠ Postcode not detected."
+        );
+
+    }
+
+
+    if(fields.address){
+
+        messages.push(
+            "✓ Address block detected."
+        );
+
+    }
+    else{
+
+        messages.push(
+            "⚠ Complete postal address requires review."
+        );
+
+    }
+
+
+    /*
+       Cross-out / watermark warning.
+    */
+
+    if(
+        /watermark|cancelled|void|specimen|duplicate|crossed/i.test(
+            text
+        )
+    ){
+
+        messages.push(
+            "⚠ Document contains text associated with watermark/cancellation/specimen markings. Verify numerical fields manually."
+        );
+
+    }
+
+
+    /*
+       OCR uncertainty.
+    */
+
+    if(
+        state.confidence < 70
+    ){
+
+        messages.push(
+            "⚠ Overall OCR confidence is below 70%. Review all critical fields against the document."
+        );
+
+    }
+    else if(
+        state.confidence < 85
+    ){
+
+        messages.push(
+            "⚠ OCR confidence is moderate. Critical fields should be visually verified."
+        );
+
+    }
+    else{
+
+        messages.push(
+            "✓ Overall OCR confidence is high, but visual verification is still recommended for identity-critical data."
+        );
+
+    }
+
+
+    return messages;
+
+}
+
+
+/* ============================================================
+   VALIDATION DISPLAY
+============================================================ */
+
+function displayValidation(
+    messages
+){
+
+    $("validationMessages").textContent =
+        messages.join("\n");
+
+    const warnings =
+        messages.filter(
+            message =>
+                message.startsWith("⚠")
+        ).length;
+
+
+    $("validationState").textContent =
+        warnings
+        ? `${warnings} REVIEW ITEM${warnings > 1 ? "S" : ""}`
+        : "PASSED";
+
+}
+
+
+/* ============================================================
+   COUNT FIELDS
+============================================================ */
+
+function countDetectedFields(
+    fields
+){
+
+    return Object.values(
+        fields
+    ).filter(
+        value =>
+            value &&
+            value.trim()
+    ).length;
+
+}
+
+
+/* ============================================================
+   NORMALIZATION
+============================================================ */
+
+function normalize(
+    text
+){
+
+    return text
+        .replace(
+            /[\u0000-\u001F]+/g,
+            " "
+        )
+        .replace(
+            /[ \t]+/g,
+            " "
+        )
+        .trim();
+
+}
+
+
+function escapeRegex(
+    string
+){
+
+    return string.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+    );
+
+}
+
+
+/* ============================================================
+   ALERT
+============================================================ */
+
+function showAlert(
+    message,
+    type = "warning"
+){
+
+    alertBox.textContent =
+        message;
+
+    alertBox.className =
+        `alert show ${type}`;
+
+}
+
+
+/* ============================================================
+   CLEAR
+============================================================ */
+
+clearBtn.addEventListener(
+    "click",
+    async () => {
+
+        state.files = [];
+
+        state.front = null;
+
+        state.back = null;
+
+        state.activeFile = null;
+
+        state.activeImage = null;
+
+        state.enhancedCanvas = null;
+
+        state.lastOCR = "";
+
+        state.confidence = 0;
+
+
+        if(state.worker){
+
+            try{
+
+                await state.worker.terminate();
+
+            }
+            catch(error){
+
+                console.warn(error);
+
+            }
+
+            state.worker = null;
+
+        }
+
+
+        previewImage.src = "";
+
+        previewImage.style.display =
+            "none";
+
+        previewEmpty.style.display =
+            "block";
+
+
+        $("previewLabel").textContent =
+            "ORIGINAL";
+
+        $("processingInfo").textContent =
+            "Ready";
+
+        $("imageInfo").textContent =
+            "No image loaded";
+
+
+        $("ocrText").textContent =
+            "No OCR result yet.";
+
+
+        $("textState").textContent =
+            "WAITING";
+
+
+        $("documentType").textContent =
+            "—";
+
+
+        $("ocrConfidence").textContent =
+            "—";
+
+
+        $("characterCount").textContent =
+            "0";
+
+
+        $("fieldCount").textContent =
+            "0";
+
+
+        [
+            "fieldName",
+            "fieldId",
+            "fieldDob",
+            "fieldGender",
+            "fieldNationality",
+            "fieldPostcode",
+            "fieldState",
+            "fieldAddress"
+        ].forEach(
+            id =>
+                $(id).value = ""
+        );
+
+
+        [
+            "nameConfidence",
+            "idConfidence",
+            "dobConfidence",
+            "genderConfidence",
+            "nationalityConfidence",
+            "postcodeConfidence",
+            "stateConfidence",
+            "addressConfidence"
+        ].forEach(
+            id => {
+
+                $(id).textContent =
+                    "—";
+
+                $(id).className =
+                    "confidence";
+
+            }
+        );
+
+
+        $("validationMessages").textContent =
+            "No validation performed.";
+
+        $("validationState").textContent =
+            "NONE";
+
+
+        progressBar.style.width =
+            "0%";
+
+
+        systemStatus.textContent =
+            "ENGINE READY";
+
+
+        alertBox.className =
+            "alert";
+
+
+        updateSlots();
+
+    }
+);
+
+
+/* ============================================================
+   OCR BUTTON
+============================================================ */
+
+ocrBtn.addEventListener(
+    "click",
+    runOCR
+);
+
+
+/* ============================================================
+   RANGE UI
+============================================================ */
+
+$("scaleRange").addEventListener(
+    "input",
+    event => {
+
+        $("scaleOutput").textContent =
+            `${event.target.value}×`;
+
+    }
+);
+
+
+$("contrastRange").addEventListener(
+    "input",
+    event => {
+
+        $("contrastOutput").textContent =
+            Number(
+                event.target.value
+            ).toFixed(2);
+
+    }
+);
+
+
+$("sharpRange").addEventListener(
+    "input",
+    event => {
+
+        $("sharpOutput").textContent =
+            Number(
+                event.target.value
+            ).toFixed(1);
+
+    }
+);
+
+
+/* ============================================================
+   KEYBOARD SHORTCUT
+============================================================ */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if(
+            (event.metaKey || event.ctrlKey) &&
+            event.key.toLowerCase() === "enter"
+        ){
+
+            event.preventDefault();
+
+            runOCR();
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   MEMORY CLEANUP
+============================================================ */
+
+window.addEventListener(
+    "beforeunload",
+    async () => {
+
+        if(state.worker){
+
+            try{
+
+                await state.worker.terminate();
+
+            }
+            catch(error){}
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   INITIALIZATION
+============================================================ */
+
+updateSlots();
+
+systemStatus.textContent =
+    "ENGINE READY";
+
+
+/*
+   Warn when very large files are selected.
+*/
+
+fileInput.addEventListener(
+    "change",
+    event => {
+
+        [...event.target.files].forEach(
+            file => {
+
+                const sizeMB =
+                    file.size /
+                    (1024 * 1024);
+
+                if(
+                    sizeMB > 500
+                ){
+
+                    showAlert(
+                        `${file.name} exceeds the 500 MB application limit.`,
+                        "error"
+                    );
+
+                }
+                else if(
+                    sizeMB > 150
+                ){
+
+                    showAlert(
+                        `${file.name} is ${sizeMB.toFixed(0)} MB. Large documents may require substantial browser memory during HD processing.`,
+                        "warning"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+);
+
+</script>
 
 </body>
 </html>
