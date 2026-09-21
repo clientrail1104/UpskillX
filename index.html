@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AWS Assessment Manager</title>
+<title>UpskillX Assessment</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -246,7 +246,7 @@ function tickerMarkup(settings=state.portalSettings,fixed=false){const t=normali
 function toast(msg,bad=false){const el=document.getElementById('toast');if(!el)return;el.textContent=msg;el.className='status '+(bad?'bad':'good');el.classList.remove('hidden');setTimeout(()=>el.classList.add('hidden'),4500)}
 function needSb(){if(!sb){toast('Add your Supabase publishable/anon key in index.html first.',true);return false}return true}
 async function adminCheck(){if(!needSb())return null;const {data:{user},error}=await sb.auth.getUser();if(error||!user)return null;const {data:role,error:e}=await sb.from('staff_roles').select('role').eq('user_id',user.id).eq('role','admin').maybeSingle();if(e)throw e;if(!role)return null;return user}
-function adminShell(body){return `<div class="shell"><div class="top"><div><div class="brand">AWS Assessment Manager</div><div class="muted small">Admin control center</div></div><div class="actions"><button class="btn ghost" onclick="location.href=location.pathname">Candidate</button><button class="btn ghost" onclick="signOut()">Sign out</button></div></div><div id="toast" class="status hidden"></div>${body}</div>`}
+function adminShell(body){return `<div class="shell"><div class="top"><div><div class="brand">UpskillX Assessment</div><div class="muted small">Admin control center</div></div><div class="actions"><button class="btn ghost" onclick="location.href=location.pathname">Candidate</button><button class="btn ghost" onclick="signOut()">Sign out</button></div></div><div id="toast" class="status hidden"></div>${body}</div>`}
 async function signOut(){await sb.auth.signOut();location.reload()}
 async function adminPage(){if(!needSb())return renderLogin();let user;try{user=await adminCheck()}catch(e){return renderError('Admin verification failed: '+e.message)}if(!user)return renderLogin();state.adminUser=user;renderAdmin();}
 function renderLogin(){document.getElementById('app').innerHTML=`<div class="shell"><div class="candidate"><div class="card"><div class="badge">ADMIN</div><h1 class="title">Administrator sign in</h1><p class="muted">Use the Supabase Auth account that has role <b>admin</b> in <code>staff_roles</code>.</p><div class="field"><label>Email</label><input id="aemail" type="email" autocomplete="username"></div><div class="field"><label>Password</label><input id="apass" type="password" autocomplete="current-password"></div><button class="btn" onclick="loginAdmin()">Sign in</button><div id="loginmsg" class="status hidden" style="margin-top:12px"></div></div></div></div>`}
